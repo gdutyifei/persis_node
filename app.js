@@ -7,7 +7,7 @@ var bodyParser = require('body-parser');
 
 ///=======路由信息 （接口地址）开始 存放在./routes目录下===========//
 var index = require('./routes/index');
-var users = require('./routes/users');
+var demos = require('./routes/demos');
 
 var app = express();
 
@@ -26,7 +26,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index); //在app中注册routes该接口
-app.use('/users', users); //在app中注册users接口
+app.use('/demos', demos); //在app中注册users接口
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
