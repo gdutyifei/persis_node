@@ -26,7 +26,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index); //在app中注册routes该接口
-app.use('/demos', demos); //在app中注册users接口
+app.use('/demos', demos); //在app中注册demo接口
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
