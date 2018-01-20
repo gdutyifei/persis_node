@@ -3,7 +3,8 @@
  */
 var booksSql = {
     insert: 'INSERT INTO Books(book_name, cover_url, created_date, created_by, updated_date, updated_by) VALUES(?, ?, NOW(), "system", NOW(), "system")',
-    queryAll: 'SELECT * FROM Books'
+    queryAll: 'SELECT * FROM Books',
+    selectByBookId: 'SELECT * FROM Books WHERE id = ?'
 };
 
 module.exports = booksSql;

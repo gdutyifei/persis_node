@@ -45,8 +45,8 @@ router.get('/insertBook', function (req, res, next) {
     })
 });
 
-// 根据id查询用户信息
-router.post('/getBookList', function (req, res, next) {
+// 获取所有图书列表
+router.all('/getBookList', function (req, res, next) {
     // 从连接池获取连接
     pool.getConnection(function (err, connection) {
         // 获取前台页面传过来的参数
