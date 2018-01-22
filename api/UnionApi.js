@@ -44,13 +44,13 @@ router.all('/getIndexInformation', function (req, res, next) {
                 var bookIds = eval(activityInfo.book_ids);
                 var period = activityInfo.period;
                 var bookInfos = [];
-                
                 async.map(bookIds, function (bookId, callback) {
                     if (bookId != null && bookId != "") {
                         connection.query(bookSql.selectByBookId, [bookId], function (bookErr, bookResult) {
 
                             connection.query(unionSql.queryParticipatesUnionByUserId, [bookId, period], function (participationErr, participationResult) {
-                                bookResult.participates = participationResult;
+                                console.log(participationResult);
+                                bookResult.participates = JSON.stringify(participationResult);
                                 bookInfos.push(bookResult);
                                 callback(null, bookResult);
                             })
@@ -61,14 +61,13 @@ router.all('/getIndexInformation', function (req, res, next) {
                 }, function (err, results) {
 
                     activityInfo.bookInfo = results;
-                    
+                    console.log(activityInfo);
                     // 以json形式，把操作结果返回给前台页面
                     responseJSON(res, activityInfo);
 
                 })
 
             }
-
 
             // 释放连接
             connection.release();
