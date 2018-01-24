@@ -34,44 +34,92 @@ router.all('/getIndexInformation', function (req, res, next) {
     var today = moment().format('YYYY-MM-DD');
     // 从连接池获取连接
     pool.getConnection(function (activityErr, connection) {
-        connection.query(activitySql.selectInfoByDate, [today], function (activityErr, activityResult) {
-            // if (activityErr) throw activityErr;
+        let firstPromise = new Promise(function (resolve, reject) {
+            //当异步代码执行成功时，我们才会调用resolve(...), 当异步代码失败时就会调用reject(...)
+            connection.query(activitySql.selectInfoByDate, [today], function (activityErr, activityResult) {
+                if (activityErr) throw activityErr;
 
-            var len = activityResult.length;
-            if (len == 1) {
-                // 如果不是等于1的话，就有问题了。
-                activityInfo = activityResult[0];
-                var bookIds = eval(activityInfo.book_ids);
-                var period = activityInfo.period;
+                var len = activityResult.length;
+                console.log(1);
+                if (len == 1) {
+                    // 如果不是等于1的话， 就有问题了。
+                    activityInfo = activityResult[0];
+                    resolve(activityInfo);
+                } else if (len == 0) {
+
+                } else {
+                    reject("获取活动出错");
+                }
+            })
+        }).then(function (activityInfo) {
+            console.log(activityInfo);
+
+            var bookIds = eval(activityInfo.book_ids);
+            var period = activityInfo.period;
+
+
+            let secondPromise = new Promise(function (resolve, reject) {
                 var bookInfos = [];
-                async.map(bookIds, function (bookId, callback) {
-                    if (bookId != null && bookId != "") {
+                if (bookIds.length != 0) {
+                    for (var i in bookIds) {
+                        console.log(i);
+                        var bookId = bookIds[i];
                         connection.query(bookSql.selectByBookId, [bookId], function (bookErr, bookResult) {
+                            // console.log(bookResult);
+                            bookInfos.push(bookResult);
+                            console.log(i);
+                            if(i == bookIds.length - 1) {
+                                console.log("走走走");
+                                resolve(bookInfos);
+                            }
 
-                            connection.query(unionSql.queryParticipatesUnionByUserId, [bookId, period], function (participationErr, participationResult) {
-                                console.log(participationResult);
-                                bookResult.participates = JSON.stringify(participationResult);
-                                bookInfos.push(bookResult);
-                                callback(null, bookResult);
-                            })
-
-                        });
+                        })
 
                     }
-                }, function (err, results) {
 
-                    activityInfo.bookInfo = results;
-                    console.log(activityInfo);
-                    // 以json形式，把操作结果返回给前台页面
-                    responseJSON(res, activityInfo);
-
-                })
-
-            }
-
-            // 释放连接
-            connection.release();
+                }
+            }).then(function (bookInfo) {
+                console.log(bookInfo);
+            });
         });
+        // connection.query(activitySql.selectInfoByDate, [today], function (activityErr, activityResult) {
+        //     // if (activityErr) throw activityErr;
+        //
+        //     var len = activityResult.length;
+        //     if (len == 1) {
+        //         // 如果不是等于1的话，就有问题了。
+        //         activityInfo = activityResult[0];
+        //         var bookIds = eval(activityInfo.book_ids);
+        //         var period = activityInfo.period;
+        //         var bookInfos = [];
+        //         async.map(bookIds, function (bookId, callback) {
+        //             if (bookId != null && bookId != "") {
+        //                 connection.query(bookSql.selectByBookId, [bookId], function (bookErr, bookResult) {
+        //
+        //                     connection.query(unionSql.queryParticipatesUnionByUserId, [bookId, period], function (participationErr, participationResult) {
+        //                         console.log(participationResult);
+        //                         bookResult.participates = JSON.stringify(participationResult);
+        //                         bookInfos.push(bookResult);
+        //                         callback(null, bookResult);
+        //                     })
+        //
+        //                 });
+        //
+        //             }
+        //         }, function (err, results) {
+        //
+        //             activityInfo.bookInfo = results;
+        //             console.log(activityInfo);
+        //             // 以json形式，把操作结果返回给前台页面
+        //             responseJSON(res, activityInfo);
+        //
+        //         })
+        //
+        //     }
+        //
+        //     // 释放连接
+        //     connection.release();
+        // });
     })
 });
 
