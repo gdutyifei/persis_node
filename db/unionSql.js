@@ -3,7 +3,7 @@
  */
 
 var unionSql = {
-    queryParticipatesUnionByUserId: 'SELECT * FROM persis.User u WHERE u.openid IN (SELECT p.user_id FROM persis.Participation p WHERE p.book_id = ? AND p.period = ? );'
+    queryParticipatesUnionByUserId: 'SELECT * FROM User u WHERE u.openid IN (SELECT p.user_id FROM Participation p WHERE p.book_id = ? AND p.period = ? );'
 };
 
 module.exports = unionSql
