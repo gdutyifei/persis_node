@@ -3,7 +3,7 @@
  */
 
 var participation = {
-    insert: 'INSERT INTO Participation(user_id, book_id, period, created_date, created_by, updated_date, updated_by) VALUES(?, ?, ?, NOW(), "system", NOW(), "system")',
+    insert: 'INSERT INTO Participation(user_info, book_id, activity_id, created_date, created_by, updated_date, updated_by) VALUES(?, ?, ?, NOW(), "system", NOW(), "system")',
     queryByPeriodAndBookId: 'SELECT * FROM Participation p WHERE p.period = ? AND p.book_id = ?'
 }
 
