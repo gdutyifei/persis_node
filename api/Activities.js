@@ -8,6 +8,9 @@ var router = express.Router();
 var mysql = require('mysql');
 var dbConfig = require('../db/mysqldbConfig');
 var activitySql = require('../db/activitySql');
+var bookSql = require('../db/booksql');
+
+var utils = require('../common/utils');
 // 使用mysqldbConfig.js的配置信息创建一个MYSQL连接池
 var pool = mysql.createPool(dbConfig.mysql);
 // 响应一个JSON数据
@@ -25,23 +28,46 @@ router.get('/insertActivities', function (req, res, next) {
     pool.getConnection(function (err, connection) {
         // 从前台获取到的参数
         var param = req.query || req.params;
-        console.log(param);
-        // 建立连接
-        connection.query(activitySql.insert, [param.date, param.period, param.books], function (err, result) {
-            console.log(err);
-            if (result) {
-                result = {
-                    code: 200,
-                    msg: '请求成功'
-                };
-            }
+        var bookIds = JSON.parse(param.books);
+        if (bookIds.length != 0) {
+            const bookPromises = bookIds.map((bookId, index) => {
+                const promises = new Promise(function (resolve, reject) {
+                    connection.query(bookSql.selectByBookId, [bookId], function (err, bookResult) {
+                        resolve(bookResult);
+                    })
+                });
 
-            // 以json形式，把操作结果返回给前台页面
-            responseJSON(res, result);
+                return promises;
+            });
 
-            // 释放连接
-            connection.release();
-        })
+            Promise.all(bookPromises).then(function (bookInfos) {
+                var bookInfo = [];
+
+                bookInfos.map((val, index) => {
+                    bookInfo.push(val[0]);
+                });
+
+                connection.query(activitySql.insert, [param.date, param.period, JSON.stringify(bookInfos)], function (err, activityResult) {
+                    console.log(activityResult);
+
+                    if (activityResult) {
+                        activityResult = {
+                            code: 200,
+                            mag: '请求成功',
+                            data: activityResult
+                        };
+                    }
+
+                    // 以json形式，把操作结果返回给前台页面
+                    responseJSON(res, activityResult);
+
+                    // 释放连接
+                    connection.release();
+                })
+            })
+        }
+        
+
     })
 });
 
