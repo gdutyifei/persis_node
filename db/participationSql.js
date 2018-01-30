@@ -4,7 +4,7 @@
 
 var participation = {
     insert: 'INSERT INTO Participation(user_info, book_id, activity_id, created_date, created_by, updated_date, updated_by) VALUES(?, ?, ?, NOW(), "system", NOW(), "system")',
-    queryByPeriodAndBookId: 'SELECT * FROM Participation p WHERE p.activity_id = ? AND p.book_id = ?'
+    queryByPeriodAndBookId: 'SELECT id, user_info, book_id, activity_id FROM Participation p WHERE p.activity_id = ? AND p.book_id = ?'
 }
 
 module.exports = participation;

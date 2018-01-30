@@ -46,7 +46,7 @@ router.get('/insertActivities', function (req, res, next) {
                     bookInfo.push(val[0]);
                 });
 
-                connection.query(activitySql.insert, [param.date, param.period, JSON.stringify(bookInfos)], function (err, activityResult) {
+                connection.query(activitySql.insert, [param.date, param.period, JSON.stringify(bookIds), JSON.stringify(bookInfos)], function (err, activityResult) {
                     console.log(activityResult);
 
                     if (activityResult) {

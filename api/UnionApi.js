@@ -34,78 +34,47 @@ router.all('/getIndexInformation', function (req, res, next) {
     var today = moment().format('YYYY-MM-DD');
     // 从连接池获取连接
     pool.getConnection(function (activityErr, connection) {
-        let firstPromise = new Promise(function (resolve, reject) {
-            //当异步代码执行成功时，我们才会调用resolve(...), 当异步代码失败时就会调用reject(...)
+        
             connection.query(activitySql.selectInfoByDate, [today], function (activityErr, activityResult) {
                 if (activityErr) throw activityErr;
 
-                var len = activityResult.length;
-
-                if (len == 1) {
-                    // 如果不是等于1的话， 就有问题了。
+                if (activityResult != null && activityResult != "") {
                     activityInfo = activityResult[0];
-                    console.log('activityInfo:', activityInfo)
-                    resolve(activityInfo);
-                } else if (len == 0) {
-                    // 没有活动的情况
-                    resolve(null);
-                } else {
-                    reject("获取活动出错");
-                }
-            })
-        }).then(function (activityInfo) {
-            console.log(activityInfo);
-            if (activityInfo != null && activityInfo != "" && activityInfo.length != 0) {
-                var bookIds = eval(activityInfo.book_ids);
-                var period = activityInfo.period;
-
-                var bookPromises = bookIds.map((bookId, index)=>{
-                    const promise = new Promise(function(resolve, reject){
-                        connection.query(bookSql.selectByBookId, [bookId], function (bookErr, bookResult) {
-                            resolve(bookResult);
-                        });
-                    })
-
-                    return promise;
-                });
-
-                Promise.all(bookPromises).then( (bookInfos) => {
-
-                    activityInfo.bookInfo = [];
-
-                    var participationPromise = bookInfos.map((val, index)=>{
-
-                        activityInfo.bookInfo.push(val[0]);
-
-                        const promise = new Promise(function(resolve, reject){
-                            connection.query(unionSql.queryParticipatesUnionByUserId, [val[0].id, period], function (participationErr, participationResult) {
-
-                                val[0].participates = JSON.stringify(participationResult);
-                                resolve(participationResult);
+                    var bookInfos = JSON.parse(activityInfo.book_infos);
+                    const activityPromise = bookInfos.map((bookInfo, index) => {
+                        const promise = new Promise((resolve, reject) => {
+                            connection.query(participationSql.queryByPeriodAndBookId, [activityInfo.id, bookInfo[0].id], function (err, result) {
+                                bookInfos[index][0]['participates'] = result;
+                                resolve(bookInfos);
                             })
-                        })
+
+                        });
                         return promise;
                     });
 
-                    Promise.all(participationPromise).then( (participationResult) => {
-                        console.log('final: ', activityInfo);
-
-                        // 以json形式，把操作结果返回给前台页面
-                        responseJSON(res, activityInfo);
+                    Promise.all(activityPromise).then((result) => {
+                        console.log(result);
+                        var len = result.length;
+                        result = result[len - 1];
+                        responseJSON(res, result);
 
                         // 释放连接
                         connection.release();
                     });
 
-                });
-            } else {
-                responseJSON(res, activityInfo);
+                } else {
+                    activityInfo = {
+                        code: 200,
+                        msg: '今天没有活动',
+                        data: null
+                    };
 
-                // 释放连接
-                connection.release();
-            }
+                    responseJSON(res, activityInfo);
 
-        });
+                    // 释放连接
+                    connection.release();
+                }
+            });
     })
 });
 
