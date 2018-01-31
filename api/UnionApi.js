@@ -45,7 +45,7 @@ router.all('/getIndexInformation', function (req, res, next) {
                         const promise = new Promise((resolve, reject) => {
                             connection.query(participationSql.queryByPeriodAndBookId, [activityInfo.id, bookInfo[0].id], function (err, result) {
                                 bookInfos[index][0]['participates'] = result;
-                                 resolve(bookInfos);
+                                resolve(bookInfos);
                             })
 
                         });
