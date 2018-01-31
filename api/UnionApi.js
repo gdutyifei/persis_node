@@ -45,7 +45,7 @@ router.all('/getIndexInformation', function (req, res, next) {
                         const promise = new Promise((resolve, reject) => {
                             connection.query(participationSql.queryByPeriodAndBookId, [activityInfo.id, bookInfo[0].id], function (err, result) {
                                 bookInfos[index][0]['participates'] = result;
-                                resolve(bookInfos);
+                                 resolve(bookInfos);
                             })
 
                         });
@@ -56,7 +56,8 @@ router.all('/getIndexInformation', function (req, res, next) {
                         console.log(result);
                         var len = result.length;
                         result = result[len - 1];
-                        responseJSON(res, result);
+                        activityInfo.bookInfo = result;
+                        responseJSON(res, activityInfo);
 
                         // 释放连接
                         connection.release();
