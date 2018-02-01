@@ -41,10 +41,20 @@ router.all('/getIndexInformation', function (req, res, next) {
                 if (activityResult != null && activityResult != "") {
                     activityInfo = activityResult[0];
                     var bookInfos = JSON.parse(activityInfo.book_infos);
+                    var participates = [];
                     const activityPromise = bookInfos.map((bookInfo, index) => {
                         const promise = new Promise((resolve, reject) => {
                             connection.query(participationSql.queryByPeriodAndBookId, [activityInfo.id, bookInfo[0].id], function (err, result) {
-                                bookInfos[index][0]['participates'] = result;
+                                if (result.length != 0) {
+                                    for (var i in result) {
+                                        participates.push(JSON.parse(result[i].user_info)[0]);
+                                    }
+                                    console.log(participates);
+                                    bookInfos[index][0]['participates'] = participates;
+                                } else {
+                                    bookInfos[index][0]['participates'] = [];
+                                }
+
                                 resolve(bookInfos);
                             })
 
