@@ -22,6 +22,7 @@ var responseJSON = function (res, ret) {
     }
 }
 
+// 参加活动
 router.get('/join', function (req, res, next) {
     // 从连接池获取连接
     pool.getConnection(function (err, connection) {
@@ -38,11 +39,9 @@ router.get('/join', function (req, res, next) {
                 }
             })
         }).then(function (userInfo) {
-            console.log(userInfo);
+            console.log(userInfo[0]);
             // 插入参与者数据
-            connection.query(participationSql.insert, [JSON.stringify(userInfo), param.bookId, param.activityId], function (err, all) {
-                console.log(err);
-                console.log(all);
+            connection.query(participationSql.insert, [JSON.stringify(userInfo[0]), userInfo[0].id, param.bookId, param.activityId], function (err, all) {
                 if (all) {
                     all = {
                         code: 200,
