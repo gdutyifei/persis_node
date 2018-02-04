@@ -13,6 +13,7 @@ var book = require('./api/Books');
 var activity = require('./api/Activities');
 var participation = require('./api/Participation');
 var unionApi = require('./api/UnionApi');
+var weixinApi = require('./api/WeixinApi');
 
 var app = express();
 
@@ -45,6 +46,7 @@ app.use('/book', book);
 app.use('/activity', activity);
 app.use('/participation', participation);
 app.use('/api', unionApi);
+app.use('/weixinApi', weixinApi);
 
 
 // catch 404 and forward to error handler
