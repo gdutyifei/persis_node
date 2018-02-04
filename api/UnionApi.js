@@ -8,7 +8,6 @@ var express = require('express');
 var router = express.Router();
 
 var moment = require('moment');
-var async = require('async');
 
 // 引入MYSQL模块
 var mysql = require('mysql');
@@ -29,6 +28,7 @@ var responseJSON = function (res, ret) {
     }
 };
 
+// 获取首页信息接口
 router.all('/getIndexInformation', function (req, res, next) {
     var activityInfo = {};
     var today = moment().format('YYYY-MM-DD');
@@ -47,7 +47,7 @@ router.all('/getIndexInformation', function (req, res, next) {
                             connection.query(participationSql.queryByPeriodAndBookId, [activityInfo.id, bookInfo[0].id], function (err, result) {
                                 if (result.length != 0) {
                                     for (var i in result) {
-                                        participates.push(JSON.parse(result[i].user_info)[0]);
+                                        participates.push(JSON.parse(result[i].user_info));
                                     }
                                     console.log(participates);
                                     bookInfos[index][0]['participates'] = participates;
@@ -75,7 +75,7 @@ router.all('/getIndexInformation', function (req, res, next) {
 
                 } else {
                     activityInfo = {
-                        code: 200,
+                        code: 999,
                         msg: '今天没有活动',
                         data: null
                     };
@@ -88,6 +88,9 @@ router.all('/getIndexInformation', function (req, res, next) {
             });
     })
 });
+
+
+// 获取排行榜
 
 
 module.exports = router;
