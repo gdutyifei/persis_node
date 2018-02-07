@@ -45,10 +45,14 @@ router.all('/getIndexInformation', function (req, res, next) {
                     const activityPromise = bookInfos.map((bookInfo, index) => {
                         const promise = new Promise((resolve, reject) => {
                             connection.query(participationSql.queryByPeriodAndBookId, [activityInfo.id, bookInfo[0].id], function (err, result) {
+                                console.log("结果啊");
+                                console.log(result);
+                                console.log(result.length);
                                 if (result.length != 0) {
                                     for (var i in result) {
-                                        participates.push(JSON.parse(result[i].user_info)[0]);
+                                        participates.push(JSON.parse(result[i].user_info));
                                     }
+                                    console.log("参与者");
                                     console.log(participates);
                                     bookInfos[index][0]['participates'] = participates;
                                 } else {
@@ -75,7 +79,7 @@ router.all('/getIndexInformation', function (req, res, next) {
 
                 } else {
                     activityInfo = {
-                        code: 200,
+                        code: 999,
                         msg: '今天没有活动',
                         data: null
                     };
@@ -88,6 +92,47 @@ router.all('/getIndexInformation', function (req, res, next) {
             });
     })
 });
+
+// 根据openid获取参与历史接口
+router.all('/getHistoryList', function (req, res, next) {
+    pool.getConnection(function (err, connection) {
+        // 从前台获取到的参数
+        var param = req.query || req.params;
+
+        connection.query(participationSql.queryByOpenid, [param.openid], function (personalErr, results) {
+            if (results != null && results != "" && results.length != 0) {
+
+
+                const allPromise = results.map((result, index) => {
+                    const activityPromise = new Promise((resolve, reject) => {
+                        connection.query(unionSql.queryBookInfoAndActivityInfoByBookIdAndActivityId, [result.bookId, result.activityId], function (unionErr, unionResult) {
+                            result.info = JSON.stringify(unionResult);
+                            resolve(result);
+                        })
+                    });
+                    return activityPromise;
+
+                });
+
+                Promise.all(allPromise).then((result) => {
+                    console.log(result);
+
+                    responseJSON(res, result);
+                    connection.release();
+                });
+            } else {
+                var emptyResult = {
+                    code: 200,
+                    msg: "暂无参加记录",
+                    data: null
+                }
+
+                responseJSON(res, emptyResult);
+                connection.release();
+            }
+        })
+    })
+})
 
 
 module.exports = router;
