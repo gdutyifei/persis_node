@@ -106,7 +106,7 @@ router.all('/getHistoryList', function (req, res, next) {
                 const allPromise = results.map((result, index) => {
                     const activityPromise = new Promise((resolve, reject) => {
                         connection.query(unionSql.queryBookInfoAndActivityInfoByBookIdAndActivityId, [result.bookId, result.activityId], function (unionErr, unionResult) {
-                            result.info = JSON.stringify(unionResult);
+                            result.info = unionResult[0];
                             resolve(result);
                         })
                     });
