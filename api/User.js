@@ -72,4 +72,31 @@ router.post('/getUserById', function (req, res, next) {
     })
 });
 
+// 根据openid查询用户信息
+router.post('/getUserByOpenid', function (req, res, next) {
+    // 从连接池获取连接
+    pool.getConnection(function (err, connection) {
+        // 获取前台页面传过来的参数
+        var param = req.query || req.params;
+        // 建立连接，增加一条数据
+        connection.query(userSql.getUserByOpenid, [ req.body.openid], function (err, result) {
+            console.log(err);
+            console.log(result);
+            if (result) {
+                result = {
+                    code: 200,
+                    msg: '请求成功',
+                    data: result
+                };
+            }
+
+            // 以json形式，把操作结果返回给前台页面
+            responseJSON(res, result);
+
+            // 释放连接
+            connection.release();
+        })
+    })
+});
+
 module.exports = router;
