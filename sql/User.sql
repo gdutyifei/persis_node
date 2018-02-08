@@ -11,6 +11,7 @@ CREATE TABLE `User` (
 	`avatar_url` VARCHAR(200) NULL DEFAULT NULL COMMENT '头像url' COLLATE 'utf8mb4_unicode_ci',
 	`nick_name` VARCHAR(20) NULL DEFAULT NULL COMMENT '微信昵称' COLLATE 'utf8mb4_unicode_ci',
 	`sex` VARCHAR(10) NULL DEFAULT NULL COMMENT '微信性别' COLLATE 'utf8mb4_unicode_ci',
+	`role` VARCHAR(10) NULL DEFAULT NULL COMMENT '用户角色' COLLATE 'utf8mb4_unicode_ci',
 	PRIMARY KEY (`id`)
 )
 COLLATE='utf8mb4_bin'
