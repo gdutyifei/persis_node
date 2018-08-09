@@ -27,46 +27,35 @@ router.get('/insertActivities', function (req, res, next) {
     pool.getConnection(function (err, connection) {
         // 从前台获取到的参数
         var param = req.query || req.params;
-        var bookIds = JSON.parse(param.books);
-        if (bookIds.length != 0) {
-            const bookPromises = bookIds.map((bookId, index) => {
-                const promises = new Promise(function (resolve, reject) {
-                    connection.query(bookSql.selectByBookId, [bookId], function (err, bookResult) {
-                        resolve(bookResult);
-                    })
-                });
+        var bookId = param.books;
+        console.log("书本id： " + bookId);
 
-                return promises;
-            });
-
-            Promise.all(bookPromises).then(function (bookInfos) {
-                var bookInfo = [];
-
-                bookInfos.map((val, index) => {
-                    bookInfo.push(val[0]);
-                });
-
-                connection.query(activitySql.insert, [param.date, param.period, JSON.stringify(bookIds), JSON.stringify(bookInfos)], function (err, activityResult) {
-                    console.log(activityResult);
-
-                    if (activityResult) {
-                        activityResult = {
-                            code: 200,
-                            mag: '请求成功',
-                            data: activityResult
-                        };
-                    }
-
-                    // 以json形式，把操作结果返回给前台页面
-                    responseJSON(res, activityResult);
-
-                    // 释放连接
-                    connection.release();
-                })
+        return new Promise(function(resolve, reject) {
+            connection.query(bookSql.selectByBookId, [bookId], function (err, bookResult) {
+                console.log(bookResult);
+                resolve(bookResult);
             })
-        }
-        
+        }).then(function(bookInfo) {
+            connection.query(activitySql.insert, [param.date, param.period, bookId, JSON.stringify(bookInfo)], function(err, activityResult) {
+                console.log(activityResult);
 
+                if (activityResult) {
+                    activityResult = {
+                        code: 200,
+                        mag: '请求成功',
+                        data: activityResult
+                    };
+                }
+
+                // 以json形式，把操作结果返回给前台页面
+                responseJSON(res, activityResult);
+
+                // 释放连接
+                connection.release();
+            })
+        }).catch(function (err) {
+            console.log(err);
+        })
     })
 });
 
