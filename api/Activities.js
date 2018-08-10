@@ -33,7 +33,11 @@ router.get('/insertActivities', function (req, res, next) {
         return new Promise(function(resolve, reject) {
             connection.query(bookSql.selectByBookId, [bookId], function (err, bookResult) {
                 console.log(bookResult);
-                resolve(bookResult);
+                if(! err) {
+                    resolve(bookResult);
+                } else {
+                    reject(err);
+                }
             })
         }).then(function(bookInfo) {
             connection.query(activitySql.insert, [param.date, param.period, bookId, JSON.stringify(bookInfo)], function(err, activityResult) {
