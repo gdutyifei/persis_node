@@ -30,7 +30,7 @@ var responseJSON = function (res, ret) {
 
 // 获取首页信息接口
 router.all('/getIndexInformation', function (req, res, next) {
-    var activityInfo = {};
+    var activityInfo = [];
     var today = moment().format('YYYY-MM-DD');
     // 从连接池获取连接
     pool.getConnection(function (activityErr, connection) {
@@ -39,43 +39,40 @@ router.all('/getIndexInformation', function (req, res, next) {
                 if (activityErr) throw activityErr;
 
                 if (activityResult != null && activityResult != "") {
-                    activityInfo = activityResult[0];
-                    var bookInfos = JSON.parse(activityInfo.book_infos);
-                    var participates = [];
-                    const activityPromise = bookInfos.map((bookInfo, index) => {
-                        const promise = new Promise((resolve, reject) => {
-                            connection.query(participationSql.queryByPeriodAndBookId, [activityInfo.id, bookInfo[0].id], function (err, result) {
-                                console.log("结果啊");
-                                console.log(result);
-                                console.log(result.length);
-                                if (result.length != 0) {
-                                    for (var i in result) {
-                                        participates.push(JSON.parse(result[i].user_info));
-                                    }
-                                    console.log("参与者");
-                                    console.log(participates);
-                                    bookInfos[index][0]['participates'] = participates;
-                                } else {
-                                    bookInfos[index][0]['participates'] = [];
+                    console.log("活动数据");
+                    console.log(activityResult);
+                    activityResult.map((item, index) => {
+                        let bookInfo =  JSON.parse(item.book_infos)[0];
+                        return new Promise((resolve, reject) => {
+                            connection.query(participationSql.queryByPeriodAndBookId, [item.id, bookInfo.id], function (err, result) {
+                                activityResult[index]["participates"] = result;
+                                console.log(activityResult);
+                                if(index == activityResult.length - 1) {
+                                    console.log("最后一个值")
+                                    resolve(activityResult);
                                 }
-
-                                resolve(bookInfos);
+                                
                             })
+                        }).then(function(result) {
+                            console.log('最后的数据');
+                            console.log(result);
+                            result = {
+                                code: 200,
+                                msg: '请求成功',
+                                data: result
+                            };
+                            responseJSON(res, result);
 
+                            // 释放连接
+                            connection.release();
                         });
-                        return promise;
+                        // console.log(activityResult);
+                        // resolve(activityResult);
                     });
 
-                    Promise.all(activityPromise).then((result) => {
-                        console.log(result);
-                        var len = result.length;
-                        result = result[len - 1];
-                        activityInfo.bookInfo = result;
-                        responseJSON(res, activityInfo);
-
-                        // 释放连接
-                        connection.release();
-                    });
+                    // Promise.all(activityPromise).then((result) => {
+                        
+                    // });
 
                 } else {
                     activityInfo = {
