@@ -30,36 +30,54 @@ router.get('/insertActivities', function (req, res, next) {
         var bookId = param.books;
         console.log("书本id： " + bookId);
 
-        return new Promise(function(resolve, reject) {
-            connection.query(bookSql.selectByBookId, [bookId], function (err, bookResult) {
-                console.log(bookResult);
-                if(! err) {
-                    resolve(bookResult);
-                } else {
-                    reject(err);
-                }
-            })
-        }).then(function(bookInfo) {
-            connection.query(activitySql.insert, [param.date, param.period, bookId, JSON.stringify(bookInfo)], function(err, activityResult) {
-                console.log(activityResult);
-
-                if (activityResult) {
-                    activityResult = {
-                        code: 200,
-                        mag: '请求成功',
-                        data: activityResult
-                    };
+        connection.query(activitySql.selectInfoByDateAndBookId, [bookId, param.date], function(error, existResult) {
+            console.log(existResult);
+            if(existResult && existResult.length != 0) {
+                var result = {
+                    code: 999,
+                    msg: '活动已存在',
+                    data: null
                 }
 
                 // 以json形式，把操作结果返回给前台页面
-                responseJSON(res, activityResult);
+                responseJSON(res, result);
 
                 // 释放连接
                 connection.release();
-            })
-        }).catch(function (err) {
-            console.log(err);
+            } else {
+                return new Promise(function(resolve, reject) {
+                    connection.query(bookSql.selectByBookId, [bookId], function (err, bookResult) {
+                        console.log(bookResult);
+                        if(! err) {
+                            resolve(bookResult);
+                        } else {
+                            reject(err);
+                        }
+                    })
+                }).then(function(bookInfo) {
+                    connection.query(activitySql.insert, [param.date, param.period, bookId, JSON.stringify(bookInfo)], function(err, activityResult) {
+                        console.log(activityResult);
+
+                        if (activityResult) {
+                            activityResult = {
+                                code: 200,
+                                msg: '请求成功',
+                                data: activityResult
+                            };
+                        }
+
+                        // 以json形式，把操作结果返回给前台页面
+                        responseJSON(res, activityResult);
+
+                        // 释放连接
+                        connection.release();
+                    })
+                }).catch(function (err) {
+                    console.log(err);
+                })
+            }
         })
+        
     })
 });
 
