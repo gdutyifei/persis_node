@@ -30,7 +30,7 @@ router.get('/join', function (req, res, next) {
         var param = req.query || req.params;
         return new Promise(function (resolve, reject) {
             connection.query(participationSql.queryByAll, [param.activityId, param.bookId, param.openId], function (err, ifJoinedResult) {
-                if (ifJoinedResult == null && ifJoinedResult == "") {
+                if (ifJoinedResult == null || ifJoinedResult == "") {
                     // 根据openid获取用户信息
                     connection.query(userSql.getUserByOpenid, [param.openId], function (err, result) {
                         if (result) {
